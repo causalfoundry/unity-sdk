@@ -1,0 +1,6 @@
+<linker>
+  <assembly fullname="CausalFoundry.Unity">
+    <type fullname="CausalFoundry.Unity.Internal.AndroidCFBridge" preserve="all" />
+    <type fullname="CausalFoundry.Unity.Internal.AndroidCFBridge+CallbackProxy" preserve="all" />
+  </assembly>
+</linker>

@@ -1,0 +1,10 @@
+# Repository-only files are not part of the distributable UPM archive.
+.git/
+.github/
+.gitignore
+.npmignore
+
+# Local build output.
+*.tgz
+node_modules/
+.npm/

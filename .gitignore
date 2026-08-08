@@ -1,0 +1,37 @@
+# macOS and Windows
+.DS_Store
+Thumbs.db
+
+# Unity-generated project state
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+UserSettings/
+MemoryCaptures/
+[Bb]uild/
+[Bb]uilds/
+
+# IDE-generated files
+.idea/
+.vs/
+.vscode/
+*.booproj
+*.csproj
+*.opendb
+*.pidb
+*.sln
+*.suo
+*.user
+*.userprefs
+*.VC.db
+
+# Package and native build output
+*.tgz
+node_modules/
+.npm/
+.gradle/
+local.properties
+.build/
+DerivedData/
+xcuserdata/

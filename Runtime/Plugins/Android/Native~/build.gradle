@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.library' version '8.5.2'
+}
+
+android {
+    namespace 'ai.causalfoundry.unity.android'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 21
+        consumerProguardFiles 'consumer-rules.pro'
+        aarMetadata {
+            minCompileSdk = 33
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError true
+        warningsAsErrors false
+    }
+}
+
+dependencies {
+    // The Unity post-generator adds these pinned runtime dependencies to unityLibrary.
+    compileOnly 'io.kenkai.android.sdk:core:1.0.10'
+    compileOnly 'androidx.lifecycle:lifecycle-process:2.5.1'
+    compileOnly 'androidx.startup:startup-runtime:1.1.1'
+    compileOnly 'com.google.code.gson:gson:2.11.0'
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib:1.9.20'
+}
