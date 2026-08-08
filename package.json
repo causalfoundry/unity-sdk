@@ -1,0 +1,35 @@
+{
+  "name": "io.kenkai.upm.sdk",
+  "version": "1.0.10",
+  "displayName": "Causal Foundry Kenkai SDK for Unity",
+  "description": "Cross-platform Unity wrapper for Causal Foundry's Kenkai Core SDK on Android and iOS.",
+  "unity": "2021.3",
+  "license": "AGPL-3.0-only",
+  "documentationUrl": "https://github.com/causalfoundry/unity-sdk/blob/main/Documentation~/index.md",
+  "changelogUrl": "https://github.com/causalfoundry/unity-sdk/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/causalfoundry/unity-sdk/blob/main/LICENSE.md",
+  "dependencies": {
+    "com.unity.modules.androidjni": "1.0.0"
+  },
+  "keywords": [
+    "causal-foundry",
+    "kenkai",
+    "sdk",
+    "analytics",
+    "events",
+    "mobile",
+    "android",
+    "ios"
+  ],
+  "author": {
+    "name": "Causal Foundry",
+    "url": "https://causalfoundry.ai"
+  },
+  "samples": [
+    {
+      "displayName": "Core SDK Basics",
+      "description": "Request notification permission, initialize, identify, log user catalog dimensions, track, fetch actions, and receive action-open callbacks.",
+      "path": "Samples~/Core SDK Basics"
+    }
+  ]
+}
