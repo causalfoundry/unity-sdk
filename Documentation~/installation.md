@@ -46,12 +46,33 @@ layout for a production dependency unless the SDK source is intentionally vendor
 ## 4. Create the settings asset
 
 1. Run **Tools > Causal Foundry > Create or Select SDK Settings**.
-2. Enter a development SDK key from the Causal Foundry dashboard. A pasted `Bearer ` prefix is
+2. Enter a development SDK key from the Kenkai Platform. A pasted `Bearer ` prefix is
    accepted and removed.
 3. Confirm that Unity created `Assets/Resources/CausalFoundrySettings.asset`.
 4. Leave **Auto Initialize** enabled for the standard mobile integration. This lets native startup
    happen early enough to observe the application launch lifecycle.
 5. Review the remaining defaults, then disable **Enable Debug Mode** before a production release.
+
+`CFSettings` is the project-wide configuration read by both the Unity runtime and the Android and
+iOS build hooks. Do not attach it to a GameObject or add it to a scene. The SDK loads it from
+`Resources`, while the build hooks use it to configure native startup early enough to observe the
+first application lifecycle events.
+
+### CF Settings reference
+
+| Inspector item | Default | Meaning | When to change it |
+| --- | --- | --- | --- |
+| **SDK Key** | Empty | Identifies the application to Kenkai. It is required for automatic initialization and for `CFSDK.InitializeAndIdentify(...)` when that method loads `CFSettings`. | Paste the raw key from the Kenkai Platform. Whitespace and an optional `Bearer ` prefix are removed automatically. |
+| **Auto Initialize** | Enabled | Starts native Core at the application-launch boundary, before the first Unity scene, so it can observe first-launch and app-open lifecycle events. | Keep enabled for the standard integration. Disable when the application calls `CFSDK.Initialize(...)` itself or when consent forbids all Kenkai activity before opt-in. |
+| **Allow Anonymous Users** | Enabled | Allows native Core to accept events before `Identify`; the device identifier represents the user until the application supplies a user ID. | Keep enabled for consistent Android and iOS behavior. Disable only when policy requires suppressing anonymous activity, then test the complete flow on both platforms. |
+| **Update Immediately** | Disabled | Requests an immediate native upload attempt for accepted events instead of the normal upload schedule. Per-event options can override it where supported. | Enable only when lower-latency upload attempts are required. Success still confirms native acceptance, not server delivery. |
+| **Auto Show In App Messages** | Enabled | Lets native Core automatically fetch and display eligible in-app messages during lifecycle processing. Manual action APIs remain available when this is disabled. | Disable before initialization when the game calls `CFSDK.FetchActions(...)` or `CFSDK.FetchCustomActions(...)` and renders the returned actions itself. |
+| **Disable Auto Page Tracking** | Enabled | Prevents native Activity, Fragment, and view-controller transitions from being recorded as pages. These transitions usually do not represent Unity scenes or canvases. | Keep enabled for most Unity games. Disable only when meaningful native screens should be tracked automatically; record Unity navigation explicitly as custom events when needed. |
+| **Pause SDK** | Disabled | Starts event ingestion and automatic foreground action work in a paused state. | Enable when initialization is allowed before consent but processing must wait, then call `CFSDK.SetPaused(false, ...)`. Pause is not a strict no-network boundary; for that requirement, disable **Auto Initialize** and make no SDK calls until opt-in. |
+| **Enable Debug Mode** | Enabled | Enables native Core debug validation and diagnostic behavior. Invalid integration values can surface as native exceptions while this is enabled. | Keep enabled while integrating so configuration errors are visible, then disable it before production. It is separate from Unity's **Development Build** option. |
+
+Initialization options are fixed when native Core starts. Changing the asset afterward does not
+reconfigure that instance; use `CFSDK.SetPaused(...)` for runtime pause and resume changes.
 
 Do not treat a value embedded in a Unity player as a secret. Use a development key while
 integrating and follow the host application's release process for production configuration.
