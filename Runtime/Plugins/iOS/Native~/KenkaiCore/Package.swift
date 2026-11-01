@@ -1,7 +1,7 @@
 // swift-tools-version: 5.4
 import PackageDescription
 
-// Modified from Causal Foundry iOS SDK 1.0.10: this wrapper exposes only Core and MMKV, raises the
+// Modified from Causal Foundry iOS SDK 1.0.11: this wrapper exposes only Core and MMKV, raises the
 // declared minimum to iOS 13, and replaces one incompatible Codable helper. See NOTICE.md.
 let package = Package(
     name: "KenkaiSDKCorePackage",

@@ -15,11 +15,10 @@ public enum WorkerCaller {
     private static var eventUploadTaskIdentifier = "io.kenkai.ingestAppEvents"
     private static var actionDownloadTaskIdentifier = "io.kenkai.fetchActions"
 
+    // Always register: iOS only runs registered handlers, and a user may turn refresh on mid-session.
     static func registerBackgroundTask() {
-        if(Kenkai.shared.isBackgroundAppRefreshEnabled()){
-            registerEventUploadTask()
-            registerActionDownloadTask()
-        }
+        registerEventUploadTask()
+        registerActionDownloadTask()
     }
 
     static func scheduleBackgroundTasks() {

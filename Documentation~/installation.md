@@ -16,7 +16,7 @@ In Unity, open **Window > Package Manager**, click **+**, choose **Add package f
 enter:
 
 ```text
-https://github.com/causalfoundry/unity-sdk.git#v1.0.10
+https://github.com/causalfoundry/unity-sdk.git#v1.0.11
 ```
 
 Or add the same dependency to the consuming project's `Packages/manifest.json`:
@@ -24,12 +24,12 @@ Or add the same dependency to the consuming project's `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "io.kenkai.upm.sdk": "https://github.com/causalfoundry/unity-sdk.git#v1.0.10"
+    "io.kenkai.upm.sdk": "https://github.com/causalfoundry/unity-sdk.git#v1.0.11"
   }
 }
 ```
 
-Replace `v1.0.10` with the required published version. Pin a release tag or full commit SHA for
+Replace `v1.0.11` with the required published version. Pin a release tag or full commit SHA for
 production builds so resolution is reproducible. A branch such as `#main` can move without a
 consumer manifest change and is appropriate only for testing unreleased SDK changes.
 

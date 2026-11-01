@@ -20,7 +20,7 @@ namespace CausalFoundry.Unity.Editor.iOS
     internal static class CFIosPostProcess
     {
         private const string RepositoryUrl = "https://github.com/CausalFoundry/ios-sdk";
-        private const string PackageVersion = "1.0.10";
+        private const string PackageVersion = "1.0.11";
         private const string PackageProduct = "KenkaiSDKCore";
         private const string PackageAssetPath =
             "Packages/io.kenkai.upm.sdk/package.json";

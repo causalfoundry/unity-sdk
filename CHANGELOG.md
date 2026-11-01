@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.0.11 - 2026-11-01
+
+- Updated the bundled iOS Core SDK to `1.0.11`. It no longer shows the "Enable Background App
+  Refresh" alert on every launch when Background App Refresh is off, always registers its
+  background tasks at launch, ignores repeated `Kenkai.configure()` calls, and no longer crashes
+  debug builds on network failures.
+- Updated the Android Core SDK dependency to `1.0.11`, a version-alignment release with no
+  functional changes on Android.
 
 ## 1.0.10 - 2026-08-08
 

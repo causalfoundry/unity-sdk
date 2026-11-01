@@ -82,13 +82,13 @@ namespace CausalFoundry.Unity.Editor.Android
             block.AppendLine("dependencies {");
             if (kotlinDsl)
             {
-                block.AppendLine("    implementation(\"io.kenkai.android.sdk:core:1.0.10\")");
+                block.AppendLine("    implementation(\"io.kenkai.android.sdk:core:1.0.11\")");
                 block.AppendLine("    implementation(\"androidx.lifecycle:lifecycle-process:2.5.1\")");
                 block.AppendLine("    implementation(\"androidx.startup:startup-runtime:1.1.1\")");
             }
             else
             {
-                block.AppendLine("    implementation 'io.kenkai.android.sdk:core:1.0.10'");
+                block.AppendLine("    implementation 'io.kenkai.android.sdk:core:1.0.11'");
                 block.AppendLine("    implementation 'androidx.lifecycle:lifecycle-process:2.5.1'");
                 block.AppendLine("    implementation 'androidx.startup:startup-runtime:1.1.1'");
             }
@@ -131,7 +131,7 @@ namespace CausalFoundry.Unity.Editor.Android
                 if (discovered[index] < RequiredCompileSdk)
                 {
                     throw new BuildFailedException(
-                        "Causal Foundry Android Core 1.0.10 requires compileSdk " +
+                        "Causal Foundry Android Core 1.0.11 requires compileSdk " +
                         RequiredCompileSdk + " or newer. Generated unityLibrary uses " +
                         discovered[index] + ".");
                 }
@@ -141,7 +141,7 @@ namespace CausalFoundry.Unity.Editor.Android
             {
                 Debug.LogWarning(
                     "Causal Foundry could not resolve a numeric unityLibrary compileSdk from the " +
-                    "generated Gradle files. Android Core 1.0.10 requires compileSdk 33 or newer.");
+                    "generated Gradle files. Android Core 1.0.11 requires compileSdk 33 or newer.");
             }
         }
 

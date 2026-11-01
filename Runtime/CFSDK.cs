@@ -16,7 +16,7 @@ namespace CausalFoundry.Unity
         private static readonly Queue<ActionOpenedEvent> PendingOpenedActions =
             new Queue<ActionOpenedEvent>();
         private const int MaximumPendingOpenedActions = 32;
-        internal const string PackageVersion = "1.0.10";
+        internal const string PackageVersion = "1.0.11";
 
         private static INativeCFBridge bridge;
         private static bool initialized;

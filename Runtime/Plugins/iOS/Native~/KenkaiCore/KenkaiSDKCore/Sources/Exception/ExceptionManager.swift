@@ -103,7 +103,8 @@ public enum ExceptionManager {
         let responseBodyString = String(data: responseBody ?? Data(), encoding: .utf8) ?? "nil"
         let msg = "\(statusCode): \(responseBodyString)"
         let exception = RuntimeException(msg)
-        callExceptionAPI(title: msg, eventType: apiName, exceptionType: "NullPointerException", stackTrace: exception)
+        // Network failures (offline, app suspended mid-request) aren't integration bugs, so don't crash debug builds.
+        callExceptionAPI(title: msg, eventType: apiName, exceptionType: "NullPointerException", stackTrace: exception, crashInDebug: false)
     }
 
     public static func throwRuntimeException(eventType: String, message: String) {
@@ -222,7 +223,8 @@ public enum ExceptionManager {
         title: String,
         eventType: String,
         exceptionType: String,
-        stackTrace: ExceptionError
+        stackTrace: ExceptionError,
+        crashInDebug: Bool = true
     ) {
         if #available(iOS 13.0, *) {
             let exceptionDataObject = ExceptionDataObject(
@@ -240,7 +242,7 @@ public enum ExceptionManager {
                 eventCtx: exceptionDataObject,
                 updateImmediately: false)
             
-            if CoreConstants.shared.isDebugMode, CoreConstants.shared.isAppDebuggable {
+            if crashInDebug, CoreConstants.shared.isDebugMode, CoreConstants.shared.isAppDebuggable {
                 // Handle debug mode throwing exception
                 fatalError(stackTrace.localizedDescription)
             }

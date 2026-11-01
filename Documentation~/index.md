@@ -14,7 +14,7 @@ Android and iOS. Start here when integrating it into a game:
 
 ## Supported surface
 
-Version `1.0.10` includes initialization, identify, portable user and other catalog dimensions,
+Version `1.0.11` includes initialization, identify, portable user and other catalog dimensions,
 custom Track events, action fetching, in-app messages, notification permission, action-open
 callbacks, and runtime pause/resume. It does not yet expose every native Core event family. Editor
 and non-mobile player calls are deterministic no-ops so game code can stay platform-neutral.

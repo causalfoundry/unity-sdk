@@ -19,12 +19,16 @@ public class Kenkai {
 
     public static let shared = Kenkai()
     private var timer: DispatchSourceTimer?
-    
+    // Static so a second configure() (on any instance) can't add duplicate observers and re-register BG tasks, which crashes.
+    private static var isConfigured = false
+
     public init() {
         appStartTime = Int64(Date().timeIntervalSince1970 * 1000)
     }
 
     public func configure() {
+        guard !Kenkai.isConfigured else { return }
+        Kenkai.isConfigured = true
         setupNotifications()
     }
 
@@ -36,11 +40,7 @@ public class Kenkai {
     @objc func appDidFinishLaunching() {
         // Register Background Task
         if #available(iOS 13.0, *) {
-            if isBackgroundAppRefreshEnabled() {
-                WorkerCaller.registerBackgroundTask()
-            } else {
-                showBackgroudTaskEnableNotification()
-            }
+            WorkerCaller.registerBackgroundTask()
         }
         
         var startTime: Int64 = 0
@@ -188,28 +188,3 @@ public class Kenkai {
     }
     
 }
-
-extension Kenkai {
-    func showBackgroudTaskEnableNotification() {
-        if #available(iOS 13.0, *) {
-            guard let window = UIApplication.shared.windows.first,
-                  let rootViewController = window.rootViewController else {
-                    return
-                }
-            
-            let alert = UIAlertController(title: "Enable Background App Refresh", message: "To take full advantage of our app's features, please enable Background App Refresh in your device settings.", preferredStyle: .alert)
-            let settingsAction = UIAlertAction(title: "Open Settings", style: .default) { _ in
-                if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(settingsURL)
-                }
-            }
-            let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-            alert.addAction(settingsAction)
-            alert.addAction(cancelAction)
-            rootViewController.present(alert, animated: true, completion: nil)
-        }
-    }
-}
-
-// Call this in your AppDelegate or somewhere early in your app lifecycle
-

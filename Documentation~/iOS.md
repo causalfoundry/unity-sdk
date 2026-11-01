@@ -2,7 +2,7 @@
 
 The Unity package links only the Causal Foundry Core product. During an iOS build it:
 
-- copies the bundled Core-only `KenkaiSDKCore` `1.0.10` local Swift package into the generated
+- copies the bundled Core-only `KenkaiSDKCore` `1.0.11` local Swift package into the generated
   Xcode project;
 - compiles the Swift/C ABI bridge into `UnityFramework`;
 - selects the correct MMKV device or simulator slice and embeds it in the application target;
@@ -11,7 +11,7 @@ The Unity package links only the Causal Foundry Core product. During an iOS buil
 - merges `io.kenkai.ingestAppEvents` and `io.kenkai.fetchActions` into
   `BGTaskSchedulerPermittedIdentifiers`.
 
-Those identifiers match the pinned `1.0.10` Core source. Older setup pages may still show the legacy
+Those identifiers match the pinned `1.0.11` Core source. Older setup pages may still show the legacy
 `ai.kenkai.fetchNudges` identifier, which that pinned release does not register.
 
 No CocoaPods installation, remote Swift-package download, or network access is required for the
@@ -64,7 +64,7 @@ Auto Initialize and delay `Initialize` and all other SDK calls until consent is 
 
 ## Build conflicts
 
-The package intentionally bundles Core `1.0.10`. If another postprocessor adds the remote
+The package intentionally bundles Core `1.0.11`. If another postprocessor adds the remote
 `CausalFoundry/ios-sdk` repository, the iOS build fails with a diagnostic rather than linking two
 copies of the same Swift module. Remove the remote reference; this wrapper's local Core package is
 the dependency used by the generated Xcode project.

@@ -1,6 +1,6 @@
 {
   "name": "io.kenkai.upm.sdk",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "displayName": "Causal Foundry Kenkai SDK for Unity",
   "description": "Cross-platform Unity wrapper for Causal Foundry's Kenkai Core SDK on Android and iOS.",
   "unity": "2021.3",
