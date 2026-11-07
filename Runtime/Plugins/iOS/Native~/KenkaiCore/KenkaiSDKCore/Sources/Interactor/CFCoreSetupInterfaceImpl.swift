@@ -26,7 +26,11 @@ internal class CFCoreSetupInterfaceImpl: CFCoreSetupInterface {
             if CoreConstants.shared.pauseSDK {
                 return
             }
-        
+            // Before build() (late or no init), skip validation too: it has side effects such as starting action polling.
+            if CoreConstants.shared.sdkKey.isEmpty {
+                return
+            }
+
             validateCoreEvent(eventName: eventName, logObject: logObject, isUpdateImmediately: isUpdateImmediately, eventTime: eventTime)
             
         }

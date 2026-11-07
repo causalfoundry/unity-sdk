@@ -54,6 +54,19 @@ namespace CausalFoundry.Unity
         public const string Cached = "cached";
     }
 
+    /// <summary>Values accepted by <c>CFSDK.LogActionResponse</c>.</summary>
+    public static class ActionResponses
+    {
+        public const string Shown = "shown";
+        public const string Open = "open";
+        public const string Discard = "discard";
+        public const string Block = "block";
+        public const string Error = "error";
+        public const string Expired = "expired";
+
+        internal static readonly string[] All = { Shown, Open, Discard, Block, Error, Expired };
+    }
+
     public static class ActionScreens
     {
         public const string Default = "";

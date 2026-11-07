@@ -22,8 +22,12 @@ public class CoreConstants {
             self.apiUrl = prodUrl
         }
     public func setApiUrl(to url: String) {
-            apiUrl = url
+        apiUrl = url
+        // The request builders skip calls on an invalid URL; in debug this surfaces the misconfiguration instead.
+        if URL(string: url) == nil {
+            ExceptionManager.throwInvalidException(eventType: "CFLog", paramName: "api url", className: "CoreConstants")
         }
+    }
     
     public var userId: String? {
         get {
@@ -46,7 +50,7 @@ public class CoreConstants {
         return contentBlock.rawValue
     }
 
-    var SDKVersion: String = "ios/1.0.11"
+    var SDKVersion: String = "ios/1.0.15"
 
     public var updateImmediately: Bool = false
 
@@ -61,7 +65,12 @@ public class CoreConstants {
 
     public var userIdKey: String = "userIdKey"
 
+    // build() sets this the same way; the default must match so release builds never crash on validation before init.
+    #if DEBUG
     public var isAppDebuggable: Bool = true
+    #else
+    public var isAppDebuggable: Bool = false
+    #endif
 
     public var logoutEvent: Bool = false
 

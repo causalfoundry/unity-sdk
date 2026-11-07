@@ -14,14 +14,28 @@ public enum WorkerCaller {
 
     private static var eventUploadTaskIdentifier = "io.kenkai.ingestAppEvents"
     private static var actionDownloadTaskIdentifier = "io.kenkai.fetchActions"
+    // iOS throws if a task is submitted without a registered handler, so scheduling checks this.
+    private static var isRegistered = false
 
     // Always register: iOS only runs registered handlers, and a user may turn refresh on mid-session.
     static func registerBackgroundTask() {
+        guard !isRegistered else { return }
+        // iOS also throws when registering an identifier that is missing from Info.plist.
+        let permitted = Bundle.main.object(forInfoDictionaryKey: "BGTaskSchedulerPermittedIdentifiers") as? [String] ?? []
+        guard permitted.contains(eventUploadTaskIdentifier), permitted.contains(actionDownloadTaskIdentifier) else {
+            print("Skipping background task registration: add \(eventUploadTaskIdentifier) and \(actionDownloadTaskIdentifier) to BGTaskSchedulerPermittedIdentifiers in Info.plist")
+            return
+        }
         registerEventUploadTask()
         registerActionDownloadTask()
+        isRegistered = true
     }
 
     static func scheduleBackgroundTasks() {
+        guard isRegistered else {
+            print("Skipping background task scheduling: handlers were not registered during app launch")
+            return
+        }
         if(Kenkai.shared.isBackgroundAppRefreshEnabled()){
             scheduleEventUploadTask()
             scheduleActionDownloadTask()
@@ -31,6 +45,11 @@ public enum WorkerCaller {
     private static func registerEventUploadTask() {
         print("Register background task: \(WorkerCaller.eventUploadTaskIdentifier)")
         BGTaskScheduler.shared.register(forTaskWithIdentifier: WorkerCaller.eventUploadTaskIdentifier, using: nil) { task in
+            // A background launch can happen before the host initializes the SDK; stored events wait for the next upload.
+            guard !CoreConstants.shared.sdkKey.isEmpty else {
+                task.setTaskCompleted(success: true)
+                return
+            }
             Task {
                 do {
                     
@@ -51,6 +70,10 @@ public enum WorkerCaller {
     private static func registerActionDownloadTask() {
         print("Register background task: \(WorkerCaller.actionDownloadTaskIdentifier)")
         BGTaskScheduler.shared.register(forTaskWithIdentifier: WorkerCaller.actionDownloadTaskIdentifier, using: nil) { task in
+            guard !CoreConstants.shared.sdkKey.isEmpty else {
+                task.setTaskCompleted(success: true)
+                return
+            }
             Task {
                 do {
                     try await CFActionListener.shared.fetchAndDisplayPushNotificationActions()

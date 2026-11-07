@@ -78,6 +78,14 @@ public final class CFUnityBridge {
             attributesJson);
     }
 
+    public static void logActionResponse(
+        String requestId,
+        String actionJson,
+        String response,
+        String details) {
+        CFNativeState.logActionResponse(requestId, actionJson, response, details);
+    }
+
     public static void showInAppMessage(String requestId, String screen) {
         CFNativeState.showInAppMessage(requestId, screen);
     }

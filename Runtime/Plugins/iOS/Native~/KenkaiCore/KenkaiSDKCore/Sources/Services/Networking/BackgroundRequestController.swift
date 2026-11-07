@@ -90,7 +90,7 @@ extension BackgroundRequestController: URLSessionDelegate {
     func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         // This method is called when a task completes (both successfully or with an error).
         // Handle task completion here.
-        print("Task \(task.originalRequest?.url?.absoluteString ?? "-") completed with error: \(error?.localizedDescription ?? "No error")")
+        print("Task \(task.originalRequest?.url?.absoluteString ?? "-") completed with error: \(error?.localizedDescription ?? "No error"), HTTP status: \((task.response as? HTTPURLResponse)?.statusCode ?? 0)")
         backgroundRequestsQueue.async(flags: .barrier) {
             if let index = self.backgroundRequests.firstIndex(where: { $0.task.taskIdentifier == task.taskIdentifier }) {
                 let request = self.backgroundRequests[index]

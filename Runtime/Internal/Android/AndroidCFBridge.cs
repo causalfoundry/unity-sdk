@@ -220,6 +220,28 @@ namespace CausalFoundry.Unity.Internal
             }
         }
 
+        public void LogActionResponse(
+            string actionJson,
+            string response,
+            string details,
+            Action<NativeBridgeResult> completion)
+        {
+            string requestId = Register(completion);
+            try
+            {
+                javaBridge.CallStatic(
+                    "logActionResponse",
+                    requestId,
+                    NormalizeJson(actionJson),
+                    response ?? string.Empty,
+                    details ?? string.Empty);
+            }
+            catch (Exception exception)
+            {
+                FailJniCall(requestId, "log the action response", exception);
+            }
+        }
+
         public void SetPaused(bool paused, Action<NativeBridgeResult> completion)
         {
             string requestId = Register(completion);

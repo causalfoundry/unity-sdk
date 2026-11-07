@@ -1021,6 +1021,59 @@ namespace CausalFoundry.Unity.Editor.Tests
         }
 
         [Test]
+        public void LogActionResponse_RequiresInitialization()
+        {
+            CFResult result = null;
+
+            CFSDK.LogActionResponse(new CFAction(), ActionResponses.Shown, null, value => result = value);
+
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo(CFErrorCode.NotInitialized));
+            Assert.That(bridge.ActionResponse, Is.Null);
+        }
+
+        [Test]
+        public void LogActionResponse_SendsFetchedActionAndNormalizedResponse()
+        {
+            Initialize();
+            bridge.FetchPayload =
+                "{\"data\":[{\"payload\":{\"type\":\"custom\",\"render_method\":\"in_app_component\",\"internal\":{\"action_id\":96}}}]}";
+            CFResult<IList<CFAction>> fetched = null;
+            CFSDK.FetchActions(
+                new ActionQuery(ActionTypes.Custom, ActionRenderMethods.InAppComponent, ActionDeliveryModes.OneOff),
+                value => fetched = value);
+            CFResult result = null;
+
+            CFSDK.LogActionResponse(fetched.Value[0], " SHOWN ", "rendered by the game", value => result = value);
+
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(bridge.ActionResponse, Is.EqualTo("shown"));
+            Assert.That(bridge.ActionResponseDetails, Is.EqualTo("rendered by the game"));
+            // The native SDK needs the item back untouched, including its opaque internal identifiers.
+            Assert.That(bridge.ActionResponseJson, Does.Contain("action_id"));
+            Assert.That(bridge.ActionResponseJson, Does.Contain("96"));
+            Assert.That(bridge.ActionResponseJson, Does.Contain("in_app_component"));
+        }
+
+        [Test]
+        public void LogActionResponse_RejectsUnknownResponse()
+        {
+            Initialize();
+            bridge.FetchPayload = "{\"data\":[{\"payload\":{\"type\":\"custom\",\"render_method\":\"in_app_component\"}}]}";
+            CFResult<IList<CFAction>> fetched = null;
+            CFSDK.FetchActions(
+                new ActionQuery(ActionTypes.Custom, ActionRenderMethods.InAppComponent, ActionDeliveryModes.OneOff),
+                value => fetched = value);
+            CFResult result = null;
+
+            CFSDK.LogActionResponse(fetched.Value[0], "clicked", null, value => result = value);
+
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Error.Code, Is.EqualTo(CFErrorCode.InvalidArgument));
+            Assert.That(bridge.ActionResponse, Is.Null);
+        }
+
+        [Test]
         public void SetPaused_RequiresInitialization()
         {
             CFResult result = null;
@@ -1178,6 +1231,9 @@ namespace CausalFoundry.Unity.Editor.Tests
             public string ActionAttributesJson { get; private set; }
             public string Screen { get; private set; }
             public bool? Paused { get; private set; }
+            public string ActionResponseJson { get; private set; }
+            public string ActionResponse { get; private set; }
+            public string ActionResponseDetails { get; private set; }
             public bool ThrowOnTrack { get; set; }
             public bool ThrowOnNotificationPermission { get; set; }
             public bool ThrowOnUserCatalog { get; set; }
@@ -1325,6 +1381,18 @@ namespace CausalFoundry.Unity.Editor.Tests
             public void ShowInAppMessage(string screen, Action<NativeBridgeResult> completion)
             {
                 Screen = screen;
+                completion(NativeBridgeResult.Success());
+            }
+
+            public void LogActionResponse(
+                string actionJson,
+                string response,
+                string details,
+                Action<NativeBridgeResult> completion)
+            {
+                ActionResponseJson = actionJson;
+                ActionResponse = response;
+                ActionResponseDetails = details;
                 completion(NativeBridgeResult.Success());
             }
 

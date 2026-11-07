@@ -47,7 +47,7 @@ public struct RateObject: Codable {
         type = try container.decode(String.self, forKey: .type)
         subjectId = try container.decode(String.self, forKey: .subjectId)
         if let metaData = try container.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

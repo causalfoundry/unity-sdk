@@ -49,7 +49,7 @@ public struct SearchObject: Codable {
         filter = try values.decodeIfPresent([String: Any].self, forKey: .filter)
         
         if let metaData = try? values.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

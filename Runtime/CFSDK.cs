@@ -16,7 +16,7 @@ namespace CausalFoundry.Unity
         private static readonly Queue<ActionOpenedEvent> PendingOpenedActions =
             new Queue<ActionOpenedEvent>();
         private const int MaximumPendingOpenedActions = 32;
-        internal const string PackageVersion = "1.0.11";
+        internal const string PackageVersion = "1.0.15";
 
         private static INativeCFBridge bridge;
         private static bool initialized;
@@ -897,6 +897,74 @@ namespace CausalFoundry.Unity
                 delegate(Action<NativeBridgeResult> nativeCompletion)
                 {
                     readyBridge.SetPaused(paused, nativeCompletion);
+                });
+        }
+
+        /// <summary>
+        /// Reports how the player responded to an action returned by <see cref="FetchActions"/>
+        /// that the game rendered itself. Use an <see cref="ActionResponses"/> value; the native
+        /// SDK logs the matching action_response event.
+        /// </summary>
+        public static void LogActionResponse(
+            CFAction action,
+            string response,
+            string details = null,
+            Action<CFResult> completion = null)
+        {
+            INativeCFBridge readyBridge;
+            CFResult readinessFailure;
+            if (!TryGetReadyBridge(out readyBridge, out readinessFailure))
+            {
+                Complete(completion, readinessFailure);
+                return;
+            }
+
+            if (action == null || action.Raw == null)
+            {
+                Complete(
+                    completion,
+                    CFResult.Failed(
+                        CFErrorCode.InvalidArgument,
+                        "The action must be one returned by FetchActions.",
+                        null));
+                return;
+            }
+
+            string normalizedResponse = (response ?? string.Empty).Trim().ToLowerInvariant();
+            if (Array.IndexOf(ActionResponses.All, normalizedResponse) < 0)
+            {
+                Complete(
+                    completion,
+                    CFResult.Failed(
+                        CFErrorCode.InvalidArgument,
+                        "Unsupported action response '" + response + "'. Use an ActionResponses value.",
+                        null));
+                return;
+            }
+
+            string actionJson;
+            string serializationError;
+            if (!CFJson.TrySerialize(action.Raw, out actionJson, out serializationError))
+            {
+                Complete(
+                    completion,
+                    CFResult.Failed(
+                        CFErrorCode.InvalidArgument,
+                        "The action could not be serialized: " + serializationError,
+                        null));
+                return;
+            }
+
+            InvokeSimple(
+                completion,
+                "log the action response",
+                delegate(Action<NativeBridgeResult> nativeCompletion)
+                {
+                    readyBridge.LogActionResponse(
+                        actionJson,
+                        normalizedResponse,
+                        details ?? string.Empty,
+                        nativeCompletion);
                 });
         }
 

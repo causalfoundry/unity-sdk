@@ -109,6 +109,12 @@ public sealed class CFCoreExample : MonoBehaviour
                 }
 
                 Debug.Log("Fetched " + result.Value.Count + " Causal Foundry action(s).");
+
+                // After rendering an action yourself, report what the player did with it.
+                if (result.Value.Count > 0)
+                {
+                    CFSDK.LogActionResponse(result.Value[0], ActionResponses.Shown);
+                }
             });
     }
 

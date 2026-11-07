@@ -8,11 +8,19 @@
 import Foundation
 
 
-struct ActionRepsonseObject: Codable {
+/// The `ActionResponse` event body: how the user responded to an action. Pass `payload.internalObject`
+/// from the fetched action so the response is attributed to it, or use `CFCoreEvent.logActionResponse`.
+public struct ActionRepsonseObject: Codable {
 
-  let response: String
-  let details: String
-  let internalObject: [String: CodableValue]?
+  public let response: String
+  public let details: String
+  public let internalObject: [String: CodableValue]?
+
+  public init(response: ActionRepsonse, details: String = "", internalObject: [String: CodableValue]? = nil) {
+      self.response = response.rawValue
+      self.details = details
+      self.internalObject = internalObject
+  }
 
   enum CodingKeys: String, CodingKey {
       case response, details
@@ -23,7 +31,8 @@ struct ActionRepsonseObject: Codable {
 }
 
 
-enum CodableValue: Codable {
+/// A JSON value, used for the `internal` part of an action that the SDK passes back untouched.
+public enum CodableValue: Codable, Equatable {
     case string(String)
     case int(Int)
     case double(Double)
@@ -32,7 +41,7 @@ enum CodableValue: Codable {
     case array([CodableValue])
     case null
 
-  init(from decoder: Decoder) throws {
+  public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if container.decodeNil() {
             self = .null
@@ -56,7 +65,7 @@ enum CodableValue: Codable {
         }
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case .string(let v): try container.encode(v)
@@ -69,4 +78,3 @@ enum CodableValue: Codable {
         }
     }
 }
-

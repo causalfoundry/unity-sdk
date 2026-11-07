@@ -28,6 +28,7 @@ namespace CausalFoundry.Unity.Editor.Android
             "# </causal-foundry-unity-properties>";
         private const string AndroidNamespace = "http://schemas.android.com/apk/res/android";
         private const int RequiredCompileSdk = 33;
+        private const int RequiredMinSdk = 24;
 
         public int callbackOrder
         {
@@ -41,7 +42,23 @@ namespace CausalFoundry.Unity.Editor.Android
             InjectGradleProperties(projectRoot);
             InjectDependencies(moduleGradle, projectRoot);
             ValidateCompileSdk(moduleGradle, projectRoot);
+            WarnOnLowMinSdk();
             InjectEarlyLifecycleConfiguration(path, projectRoot);
+        }
+
+        private static void WarnOnLowMinSdk()
+        {
+            // Below API 24 Unity 2021.3's bundled D8 desugars Core's Kotlin dependencies through a
+            // classpath transform that dies with a StackOverflowError (reproduced with Core 1.0.11 and
+            // 1.0.15). Warn rather than fail: the build may still succeed with another Gradle/JDK setup.
+            int minSdk = (int)UnityEditor.PlayerSettings.Android.minSdkVersion;
+            if (minSdk > 0 && minSdk < RequiredMinSdk) // 0 is AndroidApiLevelAuto
+            {
+                Debug.LogWarning(
+                    "Causal Foundry: Android Minimum API Level is " + minSdk + ". If the Gradle build " +
+                    "fails in DexingWithClasspathTransform with a StackOverflowError, set Minimum API " +
+                    "Level to " + RequiredMinSdk + " or newer in Player Settings.");
+            }
         }
 
         private static void InjectGradleProperties(string projectRoot)
@@ -82,13 +99,13 @@ namespace CausalFoundry.Unity.Editor.Android
             block.AppendLine("dependencies {");
             if (kotlinDsl)
             {
-                block.AppendLine("    implementation(\"io.kenkai.android.sdk:core:1.0.11\")");
+                block.AppendLine("    implementation(\"io.kenkai.android.sdk:core:1.0.15\")");
                 block.AppendLine("    implementation(\"androidx.lifecycle:lifecycle-process:2.5.1\")");
                 block.AppendLine("    implementation(\"androidx.startup:startup-runtime:1.1.1\")");
             }
             else
             {
-                block.AppendLine("    implementation 'io.kenkai.android.sdk:core:1.0.11'");
+                block.AppendLine("    implementation 'io.kenkai.android.sdk:core:1.0.15'");
                 block.AppendLine("    implementation 'androidx.lifecycle:lifecycle-process:2.5.1'");
                 block.AppendLine("    implementation 'androidx.startup:startup-runtime:1.1.1'");
             }
@@ -131,7 +148,7 @@ namespace CausalFoundry.Unity.Editor.Android
                 if (discovered[index] < RequiredCompileSdk)
                 {
                     throw new BuildFailedException(
-                        "Causal Foundry Android Core 1.0.11 requires compileSdk " +
+                        "Causal Foundry Android Core 1.0.15 requires compileSdk " +
                         RequiredCompileSdk + " or newer. Generated unityLibrary uses " +
                         discovered[index] + ".");
                 }
@@ -141,7 +158,7 @@ namespace CausalFoundry.Unity.Editor.Android
             {
                 Debug.LogWarning(
                     "Causal Foundry could not resolve a numeric unityLibrary compileSdk from the " +
-                    "generated Gradle files. Android Core 1.0.11 requires compileSdk 33 or newer.");
+                    "generated Gradle files. Android Core 1.0.15 requires compileSdk 33 or newer.");
             }
         }
 
@@ -167,13 +184,13 @@ namespace CausalFoundry.Unity.Editor.Android
         private static void InjectEarlyLifecycleConfiguration(string callbackPath, string projectRoot)
         {
             CFSettings settings = CFSettings.LoadFromResources();
-            if (settings == null || !settings.AutoInitialize || IsBlank(settings.SdkKey))
+            bool autoInitialize = settings != null && settings.AutoInitialize && !IsBlank(settings.SdkKey);
+            if (!autoInitialize)
             {
                 Debug.LogWarning(
                     "Causal Foundry Android early lifecycle bootstrap has no SDK key. Add an " +
                     "Assets/Resources/CausalFoundrySettings.asset with Auto Initialize enabled " +
                     "to capture the first app-open lifecycle; runtime Initialize remains available.");
-                return;
             }
 
             string manifestPath = FindUnityLibraryManifest(callbackPath, projectRoot);
@@ -202,6 +219,17 @@ namespace CausalFoundry.Unity.Editor.Android
             {
                 application = document.CreateElement("application");
                 manifest.AppendChild(application);
+            }
+
+            if (!autoInitialize)
+            {
+                // Unity reuses the generated manifest between builds, so metadata written by an
+                // earlier Auto Initialize build must be removed, not just skipped.
+                RemoveMetadata(application, "ai.causalfoundry.unity.SDK_KEY");
+                RemoveMetadata(application, "io.kenkai.android.sdk.APPLICATION_KEY");
+                RemoveMetadata(application, "ai.causalfoundry.unity.OPTIONS_JSON");
+                document.Save(manifestPath);
+                return;
             }
 
             SetMetadata(
@@ -248,6 +276,20 @@ namespace CausalFoundry.Unity.Editor.Android
             }
             target.SetAttribute("name", AndroidNamespace, name);
             target.SetAttribute("value", AndroidNamespace, value);
+        }
+
+        private static void RemoveMetadata(XmlElement application, string name)
+        {
+            for (int index = application.ChildNodes.Count - 1; index >= 0; index--)
+            {
+                XmlElement element = application.ChildNodes[index] as XmlElement;
+                if (element != null
+                    && element.LocalName == "meta-data"
+                    && element.GetAttribute("name", AndroidNamespace) == name)
+                {
+                    application.RemoveChild(element);
+                }
+            }
         }
 
         private static string SerializeOptions(CFSettings settings)

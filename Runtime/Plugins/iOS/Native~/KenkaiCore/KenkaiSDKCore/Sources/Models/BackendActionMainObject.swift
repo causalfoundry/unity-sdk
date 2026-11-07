@@ -32,9 +32,10 @@ public struct ActionAPIResponse:Codable {
 }
 
 
+/// One action returned by `CFCoreEvent.fetchActions`. Pass it to `CFCoreEvent.logActionResponse` to report what the user did with it.
 public struct NudgeResponseItem: Codable, Equatable, Hashable {
-  let payload: Nudge?
-  let error: String?
+  public let payload: Nudge?
+  public let error: String?
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(payload?.ref) // or some unique identifier of Nudge
@@ -46,12 +47,12 @@ public struct NudgeResponseItem: Codable, Equatable, Hashable {
     
 }
 
-struct Nudge: Codable {
-    let type: String
-    let render_method: String
-    let content: [String: String]?
-    let attr: [String: String]?
-    let internalObject: [String: CodableValue]?
+public struct Nudge: Codable {
+    public let type: String
+    public let renderMethod: String
+    public let content: [String: String]?
+    public let attr: [String: String]?
+    public let internalObject: [String: CodableValue]?
 
     var ref: String? {
         guard let internalObject = internalObject else { return nil }
@@ -73,15 +74,16 @@ struct Nudge: Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case type, render_method, content, attr
+        case type, content, attr
+        case renderMethod = "render_method"
         case internalObject = "internal"
     }
 }
 
 extension Nudge: Equatable {
-    static func == (lhs: Nudge, rhs: Nudge) -> Bool {
+    public static func == (lhs: Nudge, rhs: Nudge) -> Bool {
         return lhs.type == rhs.type &&
-               lhs.render_method == rhs.render_method &&
+               lhs.renderMethod == rhs.renderMethod &&
                lhs.content == rhs.content &&
                lhs.attr == rhs.attr &&
                lhs.internalObject?.jsonData == rhs.internalObject?.jsonData

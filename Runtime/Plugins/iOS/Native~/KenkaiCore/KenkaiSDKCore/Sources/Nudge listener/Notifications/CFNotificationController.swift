@@ -74,7 +74,7 @@ public final class CFNotificationController: NSObject {
     }
     
     func track(payload: Nudge?, response: ActionRepsonse, details : String = "") {
-        let actionResponseObj = ActionRepsonseObject(response: response.rawValue, details: details, internalObject: payload?.internalObject)
+        let actionResponseObj = ActionRepsonseObject(response: response, details: details, internalObject: payload?.internalObject)
         CFCoreEvent.shared.logIngest(eventType: .ActionResponse, logObject: actionResponseObj, isUpdateImmediately: true)
     }
     

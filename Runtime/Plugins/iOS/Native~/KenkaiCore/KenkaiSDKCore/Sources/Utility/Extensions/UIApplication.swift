@@ -60,11 +60,11 @@ extension UIApplication {
     }
 
     func minimumVersion() -> Int {
-        if let appVersionNumber = Bundle.main.object(forInfoDictionaryKey: "MinimumOSVersion") {
-            guard let majorVersion = (appVersionNumber as! String).split(separator: ".").first else {
+        if let appVersionNumber = Bundle.main.object(forInfoDictionaryKey: "MinimumOSVersion") as? String {
+            guard let majorVersion = appVersionNumber.split(separator: ".").first else {
                 return 0
             }
-            return Int(majorVersion)!
+            return Int(majorVersion) ?? 0
 
         } else {
             return 0

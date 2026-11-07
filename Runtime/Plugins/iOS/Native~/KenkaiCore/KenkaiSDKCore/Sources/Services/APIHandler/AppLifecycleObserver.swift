@@ -30,6 +30,22 @@ public class Kenkai {
         guard !Kenkai.isConfigured else { return }
         Kenkai.isConfigured = true
         setupNotifications()
+        // Configured after launch (e.g. after login): the foreground notifications already fired, so in-app
+        // messages would stay off until the app is backgrounded and reopened. `.inactive` counts as open:
+        // iOS 26 can leave an app inactive after the keyboard is dismissed.
+        if UIApplication.shared.applicationState != .background {
+            CoreConstants.shared.isAppOpen = true
+        }
+    }
+
+    /// Registers the SDK's background tasks. `configure()` does this for you when called during launch.
+    /// If you call `configure()` later (for example after login), call this from
+    /// `application(_:didFinishLaunchingWithOptions:)`: iOS only accepts registration during launch.
+    /// Safe to call more than once.
+    public static func registerBackgroundTasks() {
+        if #available(iOS 13.0, *) {
+            WorkerCaller.registerBackgroundTask()
+        }
     }
 
     deinit {
@@ -43,6 +59,15 @@ public class Kenkai {
             WorkerCaller.registerBackgroundTask()
         }
         
+        trackAppOpen()
+    }
+
+    private var appOpenTracked = false
+
+    private func trackAppOpen() {
+        // Before build() there is no SDK key and the event would be dropped; a late build() logs it instead.
+        guard !CoreConstants.shared.sdkKey.isEmpty else { return }
+        appOpenTracked = true
         var startTime: Int64 = 0
         if(appStartTime != 0){
             let currentTimeMillis = Date().timeIntervalSince1970 * 1000
@@ -52,38 +77,51 @@ public class Kenkai {
         CFCoreSetupInterfaceImpl.shared.trackSDKEvent(eventName: .App, logObject: appObject)
     }
 
+    /// Called by `CFLogBuilder.build()`. When the SDK is initialized after launch (for example after login),
+    /// the launch and foreground notifications have already fired, so their work happens here instead:
+    /// the app-open event is logged and stored events are synced right away, without waiting for a
+    /// background task or the next foreground. During launch this runs after the launch notification and
+    /// only repeats the (idempotent) sync.
+    func appInitialized() {
+        guard Kenkai.isConfigured, UIApplication.shared.applicationState != .background else { return }
+        if !appOpenTracked {
+            trackAppOpen()
+        }
+        syncOnForeground()
+    }
+
     @objc func appWillEnterForeground() {
         CoreConstants.shared.isAppOpen = true
 
         if CoreConstants.shared.isAppPaused {
             let currentTimeMillis = Date().timeIntervalSince1970 * 1000
             CoreConstants.shared.sessionStartTime = Int64(currentTimeMillis)
-            
+
             let appObject = AppObject(action: AppAction.Resume, startTime: 0)
             CFCoreSetupInterfaceImpl.shared.trackSDKEvent(eventName: .App, logObject: appObject)
-        
+
         }
         CoreConstants.shared.isAppPaused = false
-        
+        // iOS does not always follow this with didBecomeActive (seen on iOS 26 after the keyboard was
+        // dismissed), so the app-open sync runs here as well; overlapping uploads are skipped.
+        syncOnForeground()
     }
 
     @objc func appDidBecomeActive() {
         CoreConstants.shared.isAppOpen = true
-        
-        if #available(iOS 13.0, *){
-            CFSDKPerformUpload()
-        }
-        
-        if #available(iOS 13.0, *), !isBackgroundAppRefreshEnabled() {
-            // Start the timer when the app enters the foreground to periodically send events when bg permission not provided
+        syncOnForeground()
+    }
+
+    /// Uploads stored events now and keeps the periodic fallback upload running while Background App
+    /// Refresh is unavailable (background tasks will not run then).
+    private func syncOnForeground() {
+        guard #available(iOS 13.0, *) else { return }
+        CFSDKPerformUpload()
+        if isBackgroundAppRefreshEnabled() {
+            stopTimer()
+        } else {
             startTimer()
         }
-        
-        if #available(iOS 13.0, *), isBackgroundAppRefreshEnabled() {
-            // stop the timer when the app enters the foreground and bg permission is provided
-            stopTimer()
-        }
-        
     }
 
     @objc func appWillResignActive() {
@@ -167,15 +205,27 @@ public class Kenkai {
            timer?.resume()
        }
 
+       private let uploadLock = NSLock()
+       private var uploadInFlight = false
+
        func CFSDKPerformUpload() {
-           // Your asynchronous function implementation here
            if #available(iOS 13.0, *) {
+               // The foreground notifications and the fallback timer can all ask for an upload at the same
+               // time; a second upload while one is in flight would resend the same stored events.
+               uploadLock.lock()
+               let alreadyRunning = uploadInFlight
+               uploadInFlight = true
+               uploadLock.unlock()
+               if alreadyRunning { return }
                Task {
                    do {
                        try await WorkerCaller.performUpload()
                    } catch {
                        print("Error in CFSDKPerformUpload: \(error)")
                    }
+                   uploadLock.lock()
+                   uploadInFlight = false
+                   uploadLock.unlock()
                }
            } else {
                // Fallback on earlier versions

@@ -206,12 +206,14 @@ public class CFLogBuilder {
      */
     public func build() {
         if #available(iOS 13.0, *) {
-            if(appSdkKey.isEmpty){
+            guard !appSdkKey.isEmpty else {
                 ExceptionManager.throwIsRequiredException(eventType: "CFLog", elementName: "SDK KEY")
-            }else {
-                CoreConstants.shared.sdkKey = "Bearer \(appSdkKey)"
+                return
             }
+            CoreConstants.shared.sdkKey = "Bearer \(appSdkKey)"
             CFSetup().initalize(pauseSDK: pauseSDK, updateImmediately: updateImmediately)
+            // Async so that during launch this runs after the didFinishLaunching notification; see Kenkai.appInitialized().
+            DispatchQueue.main.async { Kenkai.shared.appInitialized() }
         }
     }
 }

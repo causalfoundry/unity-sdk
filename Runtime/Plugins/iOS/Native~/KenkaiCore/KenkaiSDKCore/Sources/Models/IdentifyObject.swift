@@ -39,7 +39,7 @@ public struct IdentifyObject: Codable {
         blockedReason = try values.decode(String.self, forKey: .blockedReason)
         blockedRemarks = try values.decode(String.self, forKey: .blockedRemarks)
         if let meatData = try? values.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: meatData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: meatData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

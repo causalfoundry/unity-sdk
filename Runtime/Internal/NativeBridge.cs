@@ -49,6 +49,13 @@ namespace CausalFoundry.Unity.Internal
 
         void ShowInAppMessage(string screen, Action<NativeBridgeResult> completion);
 
+        /// <summary>actionJson is one fetched action item re-encoded from CFAction.Raw.</summary>
+        void LogActionResponse(
+            string actionJson,
+            string response,
+            string details,
+            Action<NativeBridgeResult> completion);
+
         void SetPaused(bool paused, Action<NativeBridgeResult> completion);
     }
 
@@ -195,6 +202,15 @@ namespace CausalFoundry.Unity.Internal
             Complete(completion);
         }
 
+        public void LogActionResponse(
+            string actionJson,
+            string response,
+            string details,
+            Action<NativeBridgeResult> completion)
+        {
+            Complete(completion);
+        }
+
         public void SetPaused(bool paused, Action<NativeBridgeResult> completion)
         {
             Complete(completion);
@@ -283,6 +299,15 @@ namespace CausalFoundry.Unity.Internal
         }
 
         public void ShowInAppMessage(string screen, Action<NativeBridgeResult> completion)
+        {
+            Complete(completion);
+        }
+
+        public void LogActionResponse(
+            string actionJson,
+            string response,
+            string details,
+            Action<NativeBridgeResult> completion)
         {
             Complete(completion);
         }

@@ -64,7 +64,10 @@ class CFActionListener {
     
       return try await withCheckedThrowingContinuation { continuation in
         
-        let url = URL(string: APIConstants.fetchAction)!
+        guard let url = URL(string: APIConstants.fetchAction) else {
+          continuation.resume(throwing: URLError(.badURL))
+          return
+        }
         BackgroundRequestController.shared.request(url: url, httpMethod: .post, params: dictionary) { result in
           switch result {
           case .success(let data):
@@ -267,15 +270,25 @@ class CFActionListener {
         actionAttr: [String: String]?,
         onResult: @escaping ([NudgeResponseItem]) -> Void
     ) {
+        // Always answer the caller: empty before build() (late or no init) and when the request fails.
+        guard !CoreConstants.shared.sdkKey.isEmpty else {
+            onResult([])
+            return
+        }
         if #available(iOS 13.0, *) {
             Task {
-                try await fetchActionsCF(
-                    invActionType: invActionType,
-                    actionRenderMethodType: actionRenderMethodType,
-                    deliveryMode: deliveryMode,
-                    actionAttr: actionAttr,
-                    onResult: onResult
-                )
+                do {
+                    try await fetchActionsCF(
+                        invActionType: invActionType,
+                        actionRenderMethodType: actionRenderMethodType,
+                        deliveryMode: deliveryMode,
+                        actionAttr: actionAttr,
+                        onResult: onResult
+                    )
+                } catch {
+                    print("Kenkai fetchActions failed: \(error.localizedDescription)")
+                    onResult([])
+                }
             }
         }
     }

@@ -47,7 +47,15 @@ public class CFCoreEvent {
             onResult: onResult
         )
     }
-    
-    
+
+    /// Logs how the user responded to an action from `fetchActions`, for actions your app shows itself
+    /// (for example custom in-app components): `.Shown`, `.Open`, `.Discard`, `.Block`, `.Error` or `.Expired`.
+    public func logActionResponse(action: NudgeResponseItem, response: ActionRepsonse, details: String = "") {
+        guard let payload = action.payload else {
+            ExceptionManager.throwIsRequiredException(eventType: CoreEventType.ActionResponse.rawValue, elementName: "action.payload")
+            return
+        }
+        CFNotificationController.shared.track(payload: payload, response: response, details: details)
+    }
 }
 

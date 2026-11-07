@@ -195,6 +195,9 @@ private final class CFUBridgeState {
 
     func earlyBootstrap() {
         installActionHook()
+        // Runs inside the launch window even when Auto Initialize is off, so a later CFSDK.Initialize
+        // can still schedule background uploads; iOS rejects registration after launch.
+        Kenkai.registerBackgroundTasks()
 
         let info = Bundle.main.infoDictionary ?? [:]
         guard (info["CausalFoundryUnityAutoInitialize"] as? Bool) == true else { return }
@@ -598,6 +601,41 @@ private final class CFUBridgeState {
         }
     }
 
+    func logActionResponse(requestID: UInt64, actionJSON: String, response: String, details: String) {
+        runOnMain {
+            guard self.requireInitialized(requestID) else { return }
+
+            let nativeResponse: ActionRepsonse
+            switch response.lowercased() {
+            case "open": nativeResponse = .Open
+            case "discard": nativeResponse = .Discard
+            case "block": nativeResponse = .Block
+            case "shown": nativeResponse = .Shown
+            case "error": nativeResponse = .Error
+            case "expired": nativeResponse = .Expired
+            default:
+                self.finishFailure(requestID, code: "invalid_argument", message: "Unsupported action response '\(response)'.")
+                return
+            }
+
+            // The managed side sends back the item exactly as fetchActions encoded it.
+            let action: NudgeResponseItem
+            do {
+                action = try JSONDecoder().decode(NudgeResponseItem.self, from: Data(actionJSON.utf8))
+            } catch {
+                self.finishFailure(requestID, code: "invalid_argument", message: "The action is not a fetched action: \(error.localizedDescription)")
+                return
+            }
+            guard action.payload != nil else {
+                self.finishFailure(requestID, code: "invalid_argument", message: "The action has no payload.")
+                return
+            }
+
+            CFCoreEvent.shared.logActionResponse(action: action, response: nativeResponse, details: details)
+            self.finishSuccess(requestID)
+        }
+    }
+
     func showInAppMessage(requestID: UInt64, screen: String) {
         runOnMain {
             guard self.requireInitialized(requestID) else { return }
@@ -887,6 +925,21 @@ public func CFU_FetchActions(
         renderMethod: renderMethod.map { String(cString: $0) } ?? "",
         deliveryMode: deliveryMode.map { String(cString: $0) } ?? "",
         attributesJSON: attributesJSON.map { String(cString: $0) } ?? "{}"
+    )
+}
+
+@_cdecl("CFU_LogActionResponse")
+public func CFU_LogActionResponse(
+    _ requestID: UInt64,
+    _ actionJSON: UnsafePointer<CChar>?,
+    _ response: UnsafePointer<CChar>?,
+    _ details: UnsafePointer<CChar>?
+) {
+    CFUBridgeState.shared.logActionResponse(
+        requestID: requestID,
+        actionJSON: actionJSON.map { String(cString: $0) } ?? "",
+        response: response.map { String(cString: $0) } ?? "",
+        details: details.map { String(cString: $0) } ?? ""
     )
 }
 

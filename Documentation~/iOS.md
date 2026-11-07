@@ -2,7 +2,7 @@
 
 The Unity package links only the Causal Foundry Core product. During an iOS build it:
 
-- copies the bundled Core-only `KenkaiSDKCore` `1.0.11` local Swift package into the generated
+- copies the bundled Core-only `KenkaiSDKCore` `1.0.15` local Swift package into the generated
   Xcode project;
 - compiles the Swift/C ABI bridge into `UnityFramework`;
 - selects the correct MMKV device or simulator slice and embeds it in the application target;
@@ -11,7 +11,7 @@ The Unity package links only the Causal Foundry Core product. During an iOS buil
 - merges `io.kenkai.ingestAppEvents` and `io.kenkai.fetchActions` into
   `BGTaskSchedulerPermittedIdentifiers`.
 
-Those identifiers match the pinned `1.0.11` Core source. Older setup pages may still show the legacy
+Those identifiers match the pinned `1.0.15` Core source. Older setup pages may still show the legacy
 `ai.kenkai.fetchNudges` identifier, which that pinned release does not register.
 
 No CocoaPods installation, remote Swift-package download, or network access is required for the
@@ -31,6 +31,10 @@ the first app-open event and registers its background tasks on time.
 
 Calling `CFSDK.Initialize` at runtime still works without the asset, but initialization
 then occurs after the earliest iOS launch callbacks and cannot recover that first app-open event.
+With **Auto Initialize** disabled, the launch shim still registers Core's background tasks during
+launch (iOS rejects later registration), so calling `Initialize` later, for example after login or
+a server-side configuration check, or not at all, is safe when the app moves to the background.
+Background tasks that iOS runs before `Initialize` finish without doing any work.
 
 ## Notification permission
 
@@ -64,7 +68,18 @@ Auto Initialize and delay `Initialize` and all other SDK calls until consent is 
 
 ## Build conflicts
 
-The package intentionally bundles Core `1.0.11`. If another postprocessor adds the remote
+The package intentionally bundles Core `1.0.15`. If another postprocessor adds the remote
 `CausalFoundry/ios-sdk` repository, the iOS build fails with a diagnostic rather than linking two
 copies of the same Swift module. Remove the remote reference; this wrapper's local Core package is
 the dependency used by the generated Xcode project.
+
+## Unity 2021.3 players on iOS 27
+
+Apps built with the iOS 27 SDK (Xcode 27) must adopt the UIScene lifecycle; iOS 27 terminates them at
+launch otherwise (`UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption`, signal 5). Unity
+2021.3's player has not adopted it, so a Unity 2021.3 game built with Xcode 27 crashes on iOS 27 devices
+before any SDK code runs. This is independent of this package. The CF Jump sample game ships a small
+post-build shim (`CFJumpIosScenePostProcess.cs` and `CFJumpSceneSupport.mm`) that adds a scene
+delegate, defers Unity's start to the first window scene, and forwards the scene lifecycle to Unity's
+app controller. Xcode 27 also rejects deployment targets below iOS 15; set the Unity target
+minimum iOS version accordingly.

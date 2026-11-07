@@ -16,7 +16,7 @@ In Unity, open **Window > Package Manager**, click **+**, choose **Add package f
 enter:
 
 ```text
-https://github.com/causalfoundry/unity-sdk.git#v1.0.11
+https://github.com/causalfoundry/unity-sdk.git#v1.0.15
 ```
 
 Or add the same dependency to the consuming project's `Packages/manifest.json`:
@@ -24,12 +24,12 @@ Or add the same dependency to the consuming project's `Packages/manifest.json`:
 ```json
 {
   "dependencies": {
-    "io.kenkai.upm.sdk": "https://github.com/causalfoundry/unity-sdk.git#v1.0.11"
+    "io.kenkai.upm.sdk": "https://github.com/causalfoundry/unity-sdk.git#v1.0.15"
   }
 }
 ```
 
-Replace `v1.0.11` with the required published version. Pin a release tag or full commit SHA for
+Replace `v1.0.15` with the required published version. Pin a release tag or full commit SHA for
 production builds so resolution is reproducible. A branch such as `#main` can move without a
 consumer manifest change and is appropriate only for testing unreleased SDK changes.
 
@@ -66,7 +66,7 @@ first application lifecycle events.
 | **Auto Initialize** | Enabled | Starts native Core at the application-launch boundary, before the first Unity scene, so it can observe first-launch and app-open lifecycle events. | Keep enabled for the standard integration. Disable when the application calls `CFSDK.Initialize(...)` itself or when consent forbids all Kenkai activity before opt-in. |
 | **Allow Anonymous Users** | Enabled | Allows native Core to accept events before `Identify`; the device identifier represents the user until the application supplies a user ID. | Keep enabled for consistent Android and iOS behavior. Disable only when policy requires suppressing anonymous activity, then test the complete flow on both platforms. |
 | **Update Immediately** | Disabled | Requests an immediate native upload attempt for accepted events instead of the normal upload schedule. Per-event options can override it where supported. | Enable only when lower-latency upload attempts are required. Success still confirms native acceptance, not server delivery. |
-| **Auto Show In App Messages** | Enabled | Lets native Core automatically fetch and display eligible in-app messages during lifecycle processing. Manual action APIs remain available when this is disabled. | Disable before initialization when the game calls `CFSDK.FetchActions(...)` or `CFSDK.FetchCustomActions(...)` and renders the returned actions itself. |
+| **Auto Show In App Messages** | Enabled | Lets native Core automatically fetch and display eligible in-app messages during lifecycle processing. Manual action APIs remain available when this is disabled. | Disable before initialization when the game calls `CFSDK.FetchActions(...)` or `CFSDK.FetchCustomActions(...)` and renders the returned actions itself. Report what the player did with each rendered action through `CFSDK.LogActionResponse(action, ActionResponses.Shown)` (or `Open`, `Discard`, `Block`, `Error`, `Expired`). |
 | **Disable Auto Page Tracking** | Enabled | Prevents native Activity, Fragment, and view-controller transitions from being recorded as pages. These transitions usually do not represent Unity scenes or canvases. | Keep enabled for most Unity games. Disable only when meaningful native screens should be tracked automatically; record Unity navigation explicitly as custom events when needed. |
 | **Pause SDK** | Disabled | Starts event ingestion and automatic foreground action work in a paused state. | Enable when initialization is allowed before consent but processing must wait, then call `CFSDK.SetPaused(false, ...)`. Pause is not a strict no-network boundary; for that requirement, disable **Auto Initialize** and make no SDK calls until opt-in. |
 | **Enable Debug Mode** | Enabled | Enables native Core debug validation and diagnostic behavior. Invalid integration values can surface as native exceptions while this is enabled. | Keep enabled while integrating so configuration errors are visible, then disable it before production. It is separate from Unity's **Development Build** option. |

@@ -1,11 +1,11 @@
 # Bundled iOS Core SDK notice
 
-This directory redistributes the Causal Foundry/Kenkai iOS Core SDK version `1.0.11` from
+This directory redistributes the Causal Foundry/Kenkai iOS Core SDK version `1.0.15` from
 `https://github.com/CausalFoundry/ios-sdk`, tag and commit
-`2a53ef6a96f41dbc378213973089406680a69b38`.
+`7766132baf3fee3c6f42cbfffc6ba5a24f2d1d46`.
 
 Except for the source changes described below, the redistributed Swift sources and
-`MMKV.xcframework` are byte-for-byte copies of the `1.0.11` release. The local package is modified
+`MMKV.xcframework` are byte-for-byte copies of the `1.0.15` release. The local package is modified
 to:
 
 - expose only the `KenkaiSDKCore` product and its MMKV dependency;
@@ -29,7 +29,7 @@ AGPL-3.0-only and uses only Apple Foundation APIs.
 
 `MMKV.xcframework` is distributed by the upstream Causal Foundry/Kenkai release and contains MMKV:
 
-The embedded framework Info.plists identify MMKV `1.3.4`. The upstream Causal Foundry `1.0.11`
+The embedded framework Info.plists identify MMKV `1.3.4`. The upstream Causal Foundry `1.0.15`
 build script does not pin an MMKV source revision, so this wrapper records the exact shipped binary
 SHA-256 values for reproducibility:
 

@@ -196,6 +196,25 @@ namespace CausalFoundry.Unity.Internal
             }
         }
 
+        public void LogActionResponse(
+            string actionJson,
+            string response,
+            string details,
+            Action<NativeBridgeResult> completion)
+        {
+            ulong requestId = AddCompletion(completion);
+            using (var nativeAction = new NativeUtf8String(actionJson))
+            using (var nativeResponse = new NativeUtf8String(response))
+            using (var nativeDetails = new NativeUtf8String(details))
+            {
+                CFU_LogActionResponse(
+                    requestId,
+                    nativeAction.Pointer,
+                    nativeResponse.Pointer,
+                    nativeDetails.Pointer);
+            }
+        }
+
         public void SetPaused(bool paused, Action<NativeBridgeResult> completion)
         {
             ulong requestId = AddCompletion(completion);
@@ -403,6 +422,13 @@ namespace CausalFoundry.Unity.Internal
 
         [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl)]
         private static extern void CFU_ShowInAppMessage(ulong requestId, IntPtr screen);
+
+        [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void CFU_LogActionResponse(
+            ulong requestId,
+            IntPtr actionJson,
+            IntPtr response,
+            IntPtr details);
 
         [DllImport(NativeLibrary, CallingConvention = CallingConvention.Cdecl)]
         private static extern void CFU_SetPaused(ulong requestId, int paused);

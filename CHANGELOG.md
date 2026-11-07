@@ -1,5 +1,47 @@
 # Changelog
 
+## 1.0.15 - 2026-11-07
+
+The package version jumps from `1.0.11` to `1.0.15` to match the Android and iOS Core releases it
+bundles and pins.
+
+- Fixed an iOS crash when the app moved to the background after **Auto Initialize** was disabled
+  and `CFSDK.Initialize` was called later (or never). The launch shim now registers the bundled iOS
+  Core SDK's background tasks during launch regardless of **Auto Initialize**, and Core no longer
+  submits background tasks whose handlers were not registered.
+- Updated the bundled iOS Core SDK to `1.0.15` with the matching upstream fixes: events that fire
+  before initialization are dropped instead of crashing, background tasks that iOS runs before
+  initialization finish without doing work, and release builds no longer trap on an empty SDK key,
+  a missing vendor identifier, an invalid API base URL, a failed MMKV open, a malformed
+  `MinimumOSVersion`, or an event object decoded from JSON.
+- Updated the Android Core SDK dependency to `1.0.15`: events and catalog items logged during an
+  in-flight upload are no longer lost, a failed catalog upload keeps its items for the next attempt,
+  a failed upload no longer re-queues events that were already stored (which doubled the pending
+  queue on every failed attempt), and a quick switch away and back to the app no longer logs an
+  `app background` event.
+- With **Auto Initialize** disabled, in-app messages and `CFSDK.FetchActions` now work right after
+  a late `CFSDK.Initialize` (Core treats the app as open when initialized in the foreground),
+  `FetchActions` completes with an empty result instead of timing out when Core's request fails, and
+  release builds no longer crash on native validation errors raised before initialization.
+- Added `CFSDK.LogActionResponse(action, response, details)` and the `ActionResponses` values, so a
+  game that renders fetched actions itself can report shown, open, discard, block, error, or
+  expired. The Android facade now requires Android Core `1.0.15`, and the generated Gradle
+  dependency is pinned to it.
+- After a late `CFSDK.Initialize` on iOS, the app-open event is logged and stored events are uploaded
+  immediately instead of waiting for a background task or the next foreground, and every return to
+  the foreground uploads stored events (iOS 26 did not always deliver the activation callback Core
+  relied on).
+- Fixed iOS events and catalog items logged during an in-flight upload being lost: a successful
+  upload now removes only the items it sent.
+- Fixed iOS event uploads when **Allow Anonymous Users** is disabled: events are now uploaded for
+  the identified user, and events logged before `Identify` are stored instead of lost.
+- Fixed Android builds keeping **Auto Initialize** on after it was disabled: Unity reuses the
+  generated manifest between builds, and the SDK key metadata written by an earlier build was left
+  in place. The build hook now removes it.
+- Documented Android **Minimum API Level** 24 and added a build warning below it: Unity 2021.3's
+  bundled D8 fails with a `StackOverflowError` while desugaring Core's Kotlin dependencies for
+  lower API levels (this also affects `1.0.11`).
+
 ## 1.0.11 - 2026-11-01
 
 - Updated the bundled iOS Core SDK to `1.0.11`. It no longer shows the "Enable Background App

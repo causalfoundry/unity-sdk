@@ -10,16 +10,17 @@ import Foundation
 public class CatalogAPIHandler {
     func updateCoreCatalogItem(catalogObject: CatalogItemModel) {
         if #available(iOS 13.0, *) {
-            var prevEvent = MMKVHelper.shared.readCatalogData()
-            prevEvent.append(catalogObject)
-            MMKVHelper.shared.writeCatalogData(data: prevEvent)
+            MMKVHelper.shared.appendCatalogItem(catalogObject)
         }
     }
     
     
     func callCatalogAPI(catalogMainObject: [CatalogItemModel], callback: @escaping (Bool) -> Void) {
         if #available(iOS 13.0, *) {
-            let url = URL(string: "\(APIConstants.updateCatalog)")!
+            guard let url = URL(string: APIConstants.updateCatalog) else {
+                callback(false)
+                return
+            }
             
             
             let mainBody = MainCatalogBody(
@@ -30,6 +31,7 @@ public class CatalogAPIHandler {
             
             if dictionary.isEmpty {
                 print("No More Injest events")
+                callback(false)
                 return
             }
             BackgroundRequestController.shared.request(url: url, httpMethod: .post, params: dictionary) { result in

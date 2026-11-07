@@ -5,13 +5,18 @@ platform bridges.
 
 | Platform | Native Core dependency | Minimum target | Build requirement |
 | --- | --- | --- | --- |
-| Android | `io.kenkai.android.sdk:core:1.0.11` | API 21 | compile SDK 33 or newer; Java 8 bytecode |
-| iOS | `KenkaiSDKCore` exact `1.0.11` | iOS 13.0 device; iOS 14.0 arm64 Simulator | Xcode 13.3 or newer |
+| Android | `io.kenkai.android.sdk:core:1.0.15` | API 24 (Core itself supports API 21) | compile SDK 33 or newer; Java 8 bytecode |
+| iOS | `KenkaiSDKCore` exact `1.0.15` | iOS 13.0 device; iOS 14.0 arm64 Simulator | Xcode 13.3 or newer |
 
 Only the Core module is added. The Android build hook adds the pinned Maven dependency plus
 AndroidX Process Lifecycle and Startup. The iOS build hook copies a bundled, Core-only local Swift
-package containing the exact `1.0.11` Core sources and MMKV binary. It does not resolve a floating
+package containing the exact `1.0.15` Core sources and MMKV binary. It does not resolve a floating
 remote range, and it works without network access during the Xcode build.
+
+Set the Android **Minimum API Level** to 24 or newer. Below API 24, the D8 bundled with Unity 2021.3
+desugars Core's Kotlin dependencies (`kotlin-stdlib`, `kotlinx-coroutines`, `retrofit`) through a
+classpath transform that fails with a `StackOverflowError` in `DexingWithClasspathTransform`. The
+build hook logs a warning when the project is below API 24.
 
 Maintainers must build the Android facade AAR with JDK 17. Java 21 and newer add unnamed synthetic
 bridge-method metadata that the D8 version bundled with Unity 2021.3 cannot read. The emitted
@@ -39,7 +44,7 @@ logging. On iOS the pause stops the foreground action listener, but manual actio
 previously registered background work, and uploads of already queued events are not all gated by
 that flag.
 
-Android Core `1.0.11` can continue periodic network action fetches scheduled before pause, and its
+Android Core `1.0.15` can continue periodic network action fetches scheduled before pause, and its
 connectivity receiver can recreate that work. `SetPaused` is therefore not a network-silence
 boundary on either platform. If the application's consent policy forbids all Kenkai network
 activity, disable **Auto Initialize**, omit early native bootstrap, and call `Initialize` only after
@@ -53,7 +58,7 @@ Call
 from a user-initiated permission flow. It is independent of SDK initialization; a successful call
 completes with `Authorized`, `Denied`, or `NotRequired`.
 
-On Android 8.0 and newer, Android Core `1.0.11` owns `CF_NOTIFICATION_CHANNEL`. Core evaluates
+On Android 8.0 and newer, Android Core `1.0.15` owns `CF_NOTIFICATION_CHANNEL`. Core evaluates
 app-level notification permission independently of whether that channel exists, treats a missing
 channel as available for lazy creation, and blocks notification delivery when the user explicitly
 disables the channel. The Unity permission API does not pre-register or alter Core's channel. Apps

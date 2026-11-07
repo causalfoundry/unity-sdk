@@ -35,6 +35,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.kenkai.android.sdk.core.CFCoreEvent;
+import io.kenkai.android.sdk.core.action.event_types.ActionResponseType;
 import io.kenkai.android.sdk.core.action.interfaces.ActionOnClickInterface;
 import io.kenkai.android.sdk.core.action.interfaces.ActionOnClickObject;
 import io.kenkai.android.sdk.core.action.models.BackendActionPayload;
@@ -438,6 +439,46 @@ final class CFNativeState {
             }
         } catch (IllegalArgumentException error) {
             completeFailure(requestId, "invalid_action_request", messageFor(error));
+        }
+    }
+
+    static void logActionResponse(
+        String requestId,
+        String actionJson,
+        String response,
+        String details) {
+        if (!ensureReady(requestId)) {
+            return;
+        }
+        String normalizedResponse = response == null ? "" : response.trim().toLowerCase(Locale.ROOT);
+        ActionResponseType responseType = null;
+        for (ActionResponseType candidate : ActionResponseType.values()) {
+            if (candidate.toString().equals(normalizedResponse)) {
+                responseType = candidate;
+                break;
+            }
+        }
+        if (responseType == null) {
+            completeFailure(
+                requestId,
+                "invalid_action_response",
+                "Unsupported action response '" + response + "'.");
+            return;
+        }
+        try {
+            // The managed side sends back the item exactly as fetchActions encoded it.
+            BackendActionPayload action = GSON.fromJson(actionJson, BackendActionPayload.class);
+            if (action == null || action.getPayload() == null) {
+                completeFailure(requestId, "invalid_action_response", "The action has no payload.");
+                return;
+            }
+            CFCoreEvent.INSTANCE.logActionResponse(
+                action,
+                responseType,
+                isBlank(details) ? null : details);
+            completeSuccess(requestId, null);
+        } catch (Throwable error) {
+            completeFailure(requestId, "native_action_response_failed", messageFor(error));
         }
     }
 

@@ -34,7 +34,7 @@ public struct PageObject: Codable {
         renderTime = try values.decode(Int.self, forKey: .render_time)
 
         if let meatData = try? values.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: meatData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: meatData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

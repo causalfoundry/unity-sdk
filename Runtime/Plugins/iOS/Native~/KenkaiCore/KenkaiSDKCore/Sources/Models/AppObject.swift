@@ -29,7 +29,7 @@ public struct AppObject: Codable {
         action = try values.decode(String.self, forKey: .action)
         startTime = try values.decode(Int.self, forKey: .start_time)
         if let metaData = try? values.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

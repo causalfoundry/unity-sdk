@@ -37,7 +37,7 @@ public struct MediaObject: Codable {
         mediaAction = try values.decode(String.self, forKey: .action)
         seekTime = try values.decode(Int.self, forKey: .seekTime)
         if let metaData = try? values.decodeIfPresent(Data.self, forKey: .meta) {
-            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as! any Encodable)
+            meta = try? (JSONSerialization.jsonObject(with: metaData, options: .allowFragments) as? any Encodable)
         } else {
             meta = nil
         }

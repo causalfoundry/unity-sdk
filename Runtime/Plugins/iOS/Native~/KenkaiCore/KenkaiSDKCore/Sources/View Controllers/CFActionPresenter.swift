@@ -123,8 +123,8 @@ fileprivate final class CFActionViewController: UIViewController, UITableViewDel
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let object = dataSource.itemIdentifier(for: indexPath) else { return }
-        CFNotificationController.shared.trackAndOpen(object: object.payload!)
+        guard let object = dataSource.itemIdentifier(for: indexPath), let payload = object.payload else { return }
+        CFNotificationController.shared.trackAndOpen(object: payload)
         if ((object.payload?.attr) != nil)
         {
             removeAllObjects()

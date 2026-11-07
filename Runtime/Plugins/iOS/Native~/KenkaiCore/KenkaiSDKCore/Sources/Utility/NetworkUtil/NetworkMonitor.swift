@@ -70,7 +70,7 @@ final class NetworkMonitor {
         case .satisfied: return .connected
         case .unsatisfied: return .disconnected
         case .requiresConnection: return .requiresConnection
-        @unknown default: fatalError()
+        @unknown default: return .disconnected
         }
     }
     

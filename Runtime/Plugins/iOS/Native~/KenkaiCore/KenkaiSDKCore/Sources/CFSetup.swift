@@ -13,8 +13,6 @@ public class CFSetup: NSObject, IngestProtocol {
     public let catalogAPIHandler = CatalogAPIHandler()
 
     private func setup() {
-        verifyAccessToken()
-       
         CoreConstants.shared.internalInfoObject = getInternalInfo()
 
         // Change implementation
@@ -61,14 +59,12 @@ public class CFSetup: NSObject, IngestProtocol {
     }
 
     public func track<T: Codable>(eventName: String, eventProperty: String?, eventCtx: T?, updateImmediately: Bool, eventTime: Int64 = 0) {
-        verifyAccessToken()
-        ingestApiHandler.ingestTrackAPI(eventName: eventName, eventProperty: eventProperty, eventCtx: eventCtx, updateImmediately: updateImmediately, eventTime: eventTime)
-    }
-
-    private func verifyAccessToken() {
-        if CoreConstants.shared.sdkKey.isEmpty {
-            fatalError("Access key not found")
+        // Lifecycle and auto page events can fire before build() when the host delays init; drop them instead of crashing.
+        guard !CoreConstants.shared.sdkKey.isEmpty else {
+            print("Kenkai SDK is not initialized yet; dropping \(eventName) event")
+            return
         }
+        ingestApiHandler.ingestTrackAPI(eventName: eventName, eventProperty: eventProperty, eventCtx: eventCtx, updateImmediately: updateImmediately, eventTime: eventTime)
     }
 
     // Get Application Info Of app
@@ -81,7 +77,7 @@ public class CFSetup: NSObject, IngestProtocol {
             sdk: CoreConstants.shared.SDKVersion,
             app_id: application.bundleIdentifier(),
             app_version: application.versionBuild(),
-            device_id: UIDevice.current.identifierForVendor!.uuidString,
+            device_id: UIDevice.current.identifierForVendor?.uuidString ?? "",
             device_os: UIDevice.current.systemName
         )
     }

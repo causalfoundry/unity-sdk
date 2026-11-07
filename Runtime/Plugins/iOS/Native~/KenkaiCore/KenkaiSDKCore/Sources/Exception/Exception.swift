@@ -119,14 +119,13 @@ class RuntimeException: ExceptionError {
         self.message = message
     }
 
-    init(_ message: String, cause: Error?) {
-        // Ignoring cause for simplicity in this example
-        super.init(message: message, cause: cause!)
+    init(_ message: String, cause: Error) {
+        super.init(message: message, cause: cause)
         self.message = message
     }
 
-    override init(cause: Error?) {
-        super.init(cause: cause!)
+    override init(cause: Error) {
+        super.init(cause: cause)
         // Ignoring cause for simplicity in this example
         message = ""
     }

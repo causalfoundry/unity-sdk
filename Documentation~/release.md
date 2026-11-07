@@ -2,7 +2,7 @@
 
 The SDK is distributed as a Git-based UPM package from the root of the standalone
 `causalfoundry/unity-sdk` repository. Release tags therefore resolve directly through a URL such as
-`https://github.com/causalfoundry/unity-sdk.git#v1.0.11`; do not add a `?path=` query.
+`https://github.com/causalfoundry/unity-sdk.git#v1.0.15`; do not add a `?path=` query.
 
 ## Preflight
 
@@ -13,7 +13,7 @@ The SDK is distributed as a Git-based UPM package from the root of the standalon
 4. Build the Android facade AAR with JDK 17. The native build script intentionally rejects other
    Java versions because newer compilers produce metadata that crashes Unity 2021.3's D8.
 5. Run `Runtime/Plugins/Android/Native~/verify.sh`, make an Android development build, and verify on
-   a fresh install that Core `1.0.11` reports app notification permission correctly when a host-owned
+   a fresh install that Core `1.0.15` reports app notification permission correctly when a host-owned
    channel exists but `CF_NOTIFICATION_CHANNEL` does not, then lazily creates its channel when
    delivering a notification action.
 6. Run `swift package dump-package` in `Runtime/Plugins/iOS/Native~/KenkaiCore`, export Xcode, and
@@ -25,10 +25,10 @@ The SDK is distributed as a Git-based UPM package from the root of the standalon
 ## Publish
 
 1. Merge the reviewed release commit.
-2. Create an immutable annotated tag matching the manifest version, for example `v1.0.11`.
+2. Create an immutable annotated tag matching the manifest version, for example `v1.0.15`.
 3. Push the commit and tag, then create release notes from `CHANGELOG.md`.
 4. Verify a blank Unity project can install
-   `https://github.com/causalfoundry/unity-sdk.git#v1.0.11` (updated for the release version) and that
+   `https://github.com/causalfoundry/unity-sdk.git#v1.0.15` (updated for the release version) and that
    Package Manager reports the expected package version.
 5. Optionally generate a registry-format `.tgz` from the repository-root package, attach its SHA-256
    checksum, and test that exact artifact in a clean project.
